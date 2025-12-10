@@ -1,0 +1,198 @@
+{
+  "name": "The Daily Market Intelligence Bot",
+  "nodes": [
+    {
+      "parameters": {
+        "url": "https://newsapi.org/v2/everything",
+        "sendQuery": true,
+        "queryParameters": {
+          "parameters": [
+            {
+              "name": "sortBy",
+              "value": "popularity"
+            },
+            {
+              "name": "apiKey",
+              "value": "2181e9ad0d8540fca5a7f5b018f43ec1"
+            },
+            {
+              "name": "q",
+              "value": "Artificial Intelligence"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.2,
+      "position": [
+        224,
+        0
+      ],
+      "id": "2cc651e6-5239-42b1-afbe-4b9b99899720",
+      "name": "HTTP Request"
+    },
+    {
+      "parameters": {
+        "jsCode": "// Get the full list from the HTTP node\nconst allArticles = $input.first().json.articles;\n\n// Keep only the top 3\nconst top3 = allArticles.slice(0, 3);\n\n// Format them for the AI so it's easy to read\n// We create a single string combining titles and descriptions\nlet textToSummarize = \"\";\n\ntop3.forEach((article, index) => {\n    textToSummarize += `${index + 1}. Title: ${article.title}\\nDescription: ${article.description}\\n\\n`;\n});\n\nreturn [{ json: { summary_input: textToSummarize } }];"
+      },
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        448,
+        0
+      ],
+      "id": "9daaf778-5e31-4f7e-bd05-2d96dd3329bf",
+      "name": "Code in JavaScript"
+    },
+    {
+      "parameters": {
+        "promptType": "define",
+        "text": "=\"You are an executive assistant. I will provide 3 news snippets. Write a single, professional paragraph summarizing the key trends. Do not list them individually. Here is the news: {{ $json.summary_input }}\"",
+        "batching": {}
+      },
+      "type": "@n8n/n8n-nodes-langchain.chainLlm",
+      "typeVersion": 1.7,
+      "position": [
+        672,
+        0
+      ],
+      "id": "bfcc8b46-65e9-498e-ad42-02e80a66ea8b",
+      "name": "Basic LLM Chain"
+    },
+    {
+      "parameters": {
+        "sendTo": "iesufian@gmail.com",
+        "subject": "=Daily AI Briefing: {{ $now.format('dd-MM-yyyy') }}",
+        "message": "={{ $json.text }}",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.gmail",
+      "typeVersion": 2.1,
+      "position": [
+        1024,
+        0
+      ],
+      "id": "a92b35ec-23ec-4558-9c89-aca04fbfcc0c",
+      "name": "Send a message",
+      "webhookId": "ba8eca43-d491-4ffa-b753-a247ddade6b9",
+      "credentials": {
+        "gmailOAuth2": {
+          "id": "IBQlhQy5AebZ6rvM",
+          "name": "iesufian@Gmail account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "rule": {
+          "interval": [
+            {
+              "triggerAtHour": 7
+            }
+          ]
+        }
+      },
+      "type": "n8n-nodes-base.scheduleTrigger",
+      "typeVersion": 1.2,
+      "position": [
+        0,
+        0
+      ],
+      "id": "60cb3438-54e3-4c79-bda5-815905ca437a",
+      "name": "Schedule Trigger"
+    },
+    {
+      "parameters": {
+        "options": {}
+      },
+      "type": "@n8n/n8n-nodes-langchain.lmChatGoogleGemini",
+      "typeVersion": 1,
+      "position": [
+        608,
+        208
+      ],
+      "id": "e04ae225-8c51-439f-88cd-1525bfdb501a",
+      "name": "Google Gemini Chat Model",
+      "credentials": {
+        "googlePalmApi": {
+          "id": "yQim0NMYjQuujbkt",
+          "name": "Google Gemini(PaLM) Api account 108"
+        }
+      }
+    }
+  ],
+  "pinData": {},
+  "connections": {
+    "HTTP Request": {
+      "main": [
+        [
+          {
+            "node": "Code in JavaScript",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Code in JavaScript": {
+      "main": [
+        [
+          {
+            "node": "Basic LLM Chain",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Basic LLM Chain": {
+      "main": [
+        [
+          {
+            "node": "Send a message",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Schedule Trigger": {
+      "main": [
+        [
+          {
+            "node": "HTTP Request",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Google Gemini Chat Model": {
+      "ai_languageModel": [
+        [
+          {
+            "node": "Basic LLM Chain",
+            "type": "ai_languageModel",
+            "index": 0
+          }
+        ]
+      ]
+    }
+  },
+  "active": false,
+  "settings": {
+    "executionOrder": "v1",
+    "timezone": "Asia/Dhaka",
+    "callerPolicy": "workflowsFromSameOwner",
+    "availableInMCP": false,
+    "errorWorkflow": "g9ipnGm05dffckkS"
+  },
+  "versionId": "cf414369-5322-4a67-97e0-67f6576de7a2",
+  "meta": {
+    "templateCredsSetupCompleted": true,
+    "instanceId": "50918ee0be4fd9ad8edd59da0eb4c4a6502c186d6a425a1cf635ba824838446e"
+  },
+  "id": "MAH52KRnUTzOW0h4",
+  "tags": []
+}
