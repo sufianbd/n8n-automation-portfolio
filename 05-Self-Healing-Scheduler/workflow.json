@@ -1,0 +1,343 @@
+{
+  "name": "Day 5 - Workflow Error Self Healing",
+  "nodes": [
+    {
+      "parameters": {
+        "content": "Project 5 \nThe \"Self-Healing\" Scheduler",
+        "height": 96,
+        "width": 182
+      },
+      "type": "n8n-nodes-base.stickyNote",
+      "position": [
+        -832,
+        -784
+      ],
+      "typeVersion": 1,
+      "id": "29dde3df-14ce-46aa-a3bc-2df64a323f70",
+      "name": "Sticky Note"
+    },
+    {
+      "parameters": {},
+      "type": "n8n-nodes-base.manualTrigger",
+      "typeVersion": 1,
+      "position": [
+        -752,
+        -576
+      ],
+      "id": "fc173c4e-80a5-4ab4-8c01-8fcb1c939ccb",
+      "name": "When clicking ‘Execute workflow’"
+    },
+    {
+      "parameters": {
+        "jsCode": "return [\n  { json: { id: 101, url: \"https://www.google.com\", name: \"Working Site\" } },\n  { json: { id: 102, url: \"https://site-does-not-exist-123.com\", name: \"Broken Site\" } },\n  { json: { id: 103, url: \"https://www.wikipedia.org\", name: \"Working Site 2\" } }\n];"
+      },
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        -528,
+        -576
+      ],
+      "id": "6e4da1e7-642e-459b-a348-21afe8cd0d44",
+      "name": "The \"Bad Batch Mock List Of Data\""
+    },
+    {
+      "parameters": {
+        "options": {
+          "reset": false
+        }
+      },
+      "type": "n8n-nodes-base.splitInBatches",
+      "typeVersion": 3,
+      "position": [
+        -304,
+        -576
+      ],
+      "id": "af8d79cc-cc1d-47db-b358-52069844539e",
+      "name": "Loop Over Items The Isolator (Split in Batches)"
+    },
+    {
+      "parameters": {
+        "url": "={{ $json.url }}",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.2,
+      "position": [
+        -80,
+        -784
+      ],
+      "id": "40f0e783-bdd1-4b5c-977c-45f2cc54ca66",
+      "name": "The HTTP Request",
+      "onError": "continueRegularOutput"
+    },
+    {
+      "parameters": {
+        "conditions": {
+          "options": {
+            "caseSensitive": true,
+            "leftValue": "",
+            "typeValidation": "strict",
+            "version": 2
+          },
+          "conditions": [
+            {
+              "id": "4d5591a4-c6db-48e1-828a-225f7dea9060",
+              "leftValue": "={{ $json. error? true: false }}",
+              "rightValue": "",
+              "operator": {
+                "type": "boolean",
+                "operation": "true",
+                "singleValue": true
+              }
+            }
+          ],
+          "combinator": "and"
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.if",
+      "typeVersion": 2.2,
+      "position": [
+        144,
+        -784
+      ],
+      "id": "70878871-ee93-4e3b-a34d-a8338795ecbe",
+      "name": "If"
+    },
+    {
+      "parameters": {
+        "operation": "append",
+        "documentId": {
+          "__rl": true,
+          "value": "1tWZttQnWzj6vXvaiI7C-4AgXcex2MR1ppjZ6LhjT8L0",
+          "mode": "list",
+          "cachedResultName": "The Handling (Healing)",
+          "cachedResultUrl": "https://docs.google.com/spreadsheets/d/1tWZttQnWzj6vXvaiI7C-4AgXcex2MR1ppjZ6LhjT8L0/edit?usp=drivesdk"
+        },
+        "sheetName": {
+          "__rl": true,
+          "value": "gid=0",
+          "mode": "list",
+          "cachedResultName": "Sheet1",
+          "cachedResultUrl": "https://docs.google.com/spreadsheets/d/1tWZttQnWzj6vXvaiI7C-4AgXcex2MR1ppjZ6LhjT8L0/edit#gid=0"
+        },
+        "columns": {
+          "mappingMode": "defineBelow",
+          "value": {
+            "ID": "={{ $('Loop Over Items The Isolator (Split in Batches)').item.json.id }}",
+            "Error": "={{ $json.error }}"
+          },
+          "matchingColumns": [],
+          "schema": [
+            {
+              "id": "ID",
+              "displayName": "ID",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true,
+              "removed": false
+            },
+            {
+              "id": "Error",
+              "displayName": "Error",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true,
+              "removed": false
+            }
+          ],
+          "attemptToConvertTypes": false,
+          "convertFieldsToString": false
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.googleSheets",
+      "typeVersion": 4.7,
+      "position": [
+        368,
+        -720
+      ],
+      "id": "6e534adf-7e6e-4544-ab1b-ef2f5878209f",
+      "name": "Error Log Sheet",
+      "credentials": {
+        "googleSheetsOAuth2Api": {
+          "id": "RTUtjJPeCiCw58KF",
+          "name": "iesufian@Google Sheets"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "operation": "append",
+        "documentId": {
+          "__rl": true,
+          "value": "1tWZttQnWzj6vXvaiI7C-4AgXcex2MR1ppjZ6LhjT8L0",
+          "mode": "list",
+          "cachedResultName": "The Handling (Healing)",
+          "cachedResultUrl": "https://docs.google.com/spreadsheets/d/1tWZttQnWzj6vXvaiI7C-4AgXcex2MR1ppjZ6LhjT8L0/edit?usp=drivesdk"
+        },
+        "sheetName": {
+          "__rl": true,
+          "value": 494576391,
+          "mode": "list",
+          "cachedResultName": "Success_Logs",
+          "cachedResultUrl": "https://docs.google.com/spreadsheets/d/1tWZttQnWzj6vXvaiI7C-4AgXcex2MR1ppjZ6LhjT8L0/edit#gid=494576391"
+        },
+        "columns": {
+          "mappingMode": "defineBelow",
+          "value": {
+            "Status": "Success",
+            "ID": "={{ $('Loop Over Items The Isolator (Split in Batches)').item.json.id }}"
+          },
+          "matchingColumns": [],
+          "schema": [
+            {
+              "id": "ID",
+              "displayName": "ID",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "Status",
+              "displayName": "Status",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            }
+          ],
+          "attemptToConvertTypes": false,
+          "convertFieldsToString": false
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.googleSheets",
+      "typeVersion": 4.7,
+      "position": [
+        368,
+        -528
+      ],
+      "id": "c181e42c-0d1a-477d-8206-65144c33e526",
+      "name": "Success Log Sheet",
+      "credentials": {
+        "googleSheetsOAuth2Api": {
+          "id": "RTUtjJPeCiCw58KF",
+          "name": "iesufian@Google Sheets"
+        }
+      }
+    }
+  ],
+  "pinData": {},
+  "connections": {
+    "When clicking ‘Execute workflow’": {
+      "main": [
+        [
+          {
+            "node": "The \"Bad Batch Mock List Of Data\"",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "The \"Bad Batch Mock List Of Data\"": {
+      "main": [
+        [
+          {
+            "node": "Loop Over Items The Isolator (Split in Batches)",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Loop Over Items The Isolator (Split in Batches)": {
+      "main": [
+        [
+          {
+            "node": "The HTTP Request",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "The \"Bad Batch Mock List Of Data\"",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "The HTTP Request": {
+      "main": [
+        [
+          {
+            "node": "If",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "If": {
+      "main": [
+        [
+          {
+            "node": "Error Log Sheet",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "Success Log Sheet",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Error Log Sheet": {
+      "main": [
+        [
+          {
+            "node": "Loop Over Items The Isolator (Split in Batches)",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Success Log Sheet": {
+      "main": [
+        [
+          {
+            "node": "Loop Over Items The Isolator (Split in Batches)",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    }
+  },
+  "active": false,
+  "settings": {
+    "executionOrder": "v1"
+  },
+  "versionId": "cd1af02f-da46-4b71-8133-46c3b3cc20dc",
+  "meta": {
+    "templateCredsSetupCompleted": true,
+    "instanceId": "50918ee0be4fd9ad8edd59da0eb4c4a6502c186d6a425a1cf635ba824838446e"
+  },
+  "id": "62f3kSamGp80VrZ3",
+  "tags": []
+}
