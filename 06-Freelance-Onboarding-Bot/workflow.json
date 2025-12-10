@@ -1,0 +1,210 @@
+{
+  "name": "Day 6 - Onboarding Bot",
+  "nodes": [
+    {
+      "parameters": {
+        "content": "The Freelancer's Onboarding Bot",
+        "height": 80,
+        "width": 272
+      },
+      "type": "n8n-nodes-base.stickyNote",
+      "position": [
+        -720,
+        -512
+      ],
+      "typeVersion": 1,
+      "id": "ea099768-67aa-467a-92ee-8176e7cf3c96",
+      "name": "Sticky Note"
+    },
+    {
+      "parameters": {
+        "httpMethod": "POST",
+        "path": "new-client",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.webhook",
+      "typeVersion": 2.1,
+      "position": [
+        -768,
+        -336
+      ],
+      "id": "a242e942-b9b1-4011-a041-b9b75d166f3d",
+      "name": "Webhook",
+      "webhookId": "8a64258b-1c00-4b20-9e60-e442c9e6d147"
+    },
+    {
+      "parameters": {
+        "assignments": {
+          "assignments": [
+            {
+              "id": "60d796b5-5dd1-43f7-b39f-e00a67ba5e94",
+              "name": "My_Email",
+              "value": "iesufian@gmail.com",
+              "type": "string"
+            },
+            {
+              "id": "68ce427e-c467-4046-b873-c0676502063c",
+              "name": "Min_Budget",
+              "value": 500,
+              "type": "number"
+            },
+            {
+              "id": "fcc99573-763b-4e03-95d8-cc8bb0be1360",
+              "name": "Trello_List_ID",
+              "value": "69297aca1d96067f8d838569",
+              "type": "string"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.set",
+      "typeVersion": 3.4,
+      "position": [
+        -560,
+        -336
+      ],
+      "id": "f160a105-d816-41df-a1f8-e195a35227e3",
+      "name": "Global_Config"
+    },
+    {
+      "parameters": {
+        "conditions": {
+          "options": {
+            "caseSensitive": true,
+            "leftValue": "",
+            "typeValidation": "strict",
+            "version": 2
+          },
+          "conditions": [
+            {
+              "id": "9a207f5e-2dfe-459e-a237-2dec68a51308",
+              "leftValue": "={{ $('Webhook').item.json.body.budget }}",
+              "rightValue": "={{ $('Global_Config').item.json.Min_Budget }}",
+              "operator": {
+                "type": "number",
+                "operation": "gte"
+              }
+            }
+          ],
+          "combinator": "and"
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.if",
+      "typeVersion": 2.2,
+      "position": [
+        -352,
+        -336
+      ],
+      "id": "eb9ca2e6-2f0e-48d0-a6b5-1d025debd8be",
+      "name": "If"
+    },
+    {
+      "parameters": {
+        "listId": "={{ $('Global_Config').item.json.Trello_List_ID }}",
+        "name": "={{ $('Webhook').item.json.body.client }}{{ $('Webhook').item.json.body.budget }}",
+        "description": "=Service needed: {{ $('Webhook').item.json.body.service }}",
+        "additionalFields": {}
+      },
+      "type": "n8n-nodes-base.trello",
+      "typeVersion": 1,
+      "position": [
+        -144,
+        -432
+      ],
+      "id": "6f029fc6-91ba-422f-8ff6-bb0b74336ba7",
+      "name": "Create a card",
+      "credentials": {
+        "trelloApi": {
+          "id": "Y66ZPgDZ0xf9vUJl",
+          "name": "Trello account 2"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "sendTo": "={{ $('Webhook').item.json.body.email }}",
+        "subject": "=Subject: Proposal for {{ $('Webhook').item.json.body.service }}",
+        "message": "=\"Hi! I saw your budget of {{ $('Webhook').item.json.body.budget }}  The budget fits my tier. Attached is my contract.\"",
+        "options": {
+          "appendAttribution": false,
+          "bccList": "={{ $('Global_Config').item.json.My_Email }}"
+        }
+      },
+      "type": "n8n-nodes-base.gmail",
+      "typeVersion": 2.1,
+      "position": [
+        64,
+        -432
+      ],
+      "id": "25e2721d-deca-4b90-a461-7948d7083621",
+      "name": "Send a message",
+      "webhookId": "15cc2eec-f222-423e-ab02-29bebc55f91e",
+      "credentials": {
+        "gmailOAuth2": {
+          "id": "IBQlhQy5AebZ6rvM",
+          "name": "iesufian@Gmail account"
+        }
+      }
+    }
+  ],
+  "pinData": {},
+  "connections": {
+    "Webhook": {
+      "main": [
+        [
+          {
+            "node": "Global_Config",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Global_Config": {
+      "main": [
+        [
+          {
+            "node": "If",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "If": {
+      "main": [
+        [
+          {
+            "node": "Create a card",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Create a card": {
+      "main": [
+        [
+          {
+            "node": "Send a message",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    }
+  },
+  "active": false,
+  "settings": {
+    "executionOrder": "v1"
+  },
+  "versionId": "8f68a53d-5ddb-4aee-ae86-66e32b4e6d05",
+  "meta": {
+    "templateCredsSetupCompleted": true,
+    "instanceId": "50918ee0be4fd9ad8edd59da0eb4c4a6502c186d6a425a1cf635ba824838446e"
+  },
+  "id": "ftNABFGI5R1Gk1jl",
+  "tags": []
+}
