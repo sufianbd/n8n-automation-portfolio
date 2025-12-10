@@ -1,0 +1,280 @@
+{
+  "name": "Day 3 - Sales Pipeline",
+  "nodes": [
+    {
+      "parameters": {
+        "httpMethod": "POST",
+        "path": "lead",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.webhook",
+      "typeVersion": 2.1,
+      "position": [
+        0,
+        0
+      ],
+      "id": "4ef9e4f5-e94f-4fea-b4f4-76a7efda6e21",
+      "name": "Webhook",
+      "webhookId": "31779b28-efc1-40bf-a14c-c0c20702f4f5"
+    },
+    {
+      "parameters": {
+        "jsCode": "for (const item of $input.all()) {\n  const domain = item.json.domain;\n  \n  // Simulate real API responses\n  // CRITICAL CHANGE: We now map numbers to HubSpot's specific \"Ranges\"\n  \n  if (domain === 'tesla.com') {\n    item.json.company_name = \"Tesla Inc.\";\n    item.json.employees = \"1000+\"; // Changed from 120000 to \"1000+\"\n    item.json.industry = \"Automotive\";\n  } \n  else if (domain === 'google.com') {\n    item.json.company_name = \"Google\";\n    item.json.employees = \"1000+\"; // Changed from 150000 to \"1000+\"\n    item.json.industry = \"Tech\";\n  }\n  else {\n    item.json.company_name = \"Small Startup\";\n    item.json.employees = \"1-5\"; // Changed from 5 to \"1-5\"\n    item.json.industry = \"Unknown\";\n  }\n}\nreturn $input.all();"
+      },
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        448,
+        0
+      ],
+      "id": "5deba55b-aec4-41f7-92b4-6d1880093a9b",
+      "name": "Enrichment API The Mock Enrichment Node"
+    },
+    {
+      "parameters": {
+        "conditions": {
+          "options": {
+            "caseSensitive": true,
+            "leftValue": "",
+            "typeValidation": "strict",
+            "version": 2
+          },
+          "conditions": [
+            {
+              "id": "e12ec165-b2d9-4de1-aa1d-b3caf70edd33",
+              "leftValue": "={{ $json.employees }}",
+              "rightValue": "1000+",
+              "operator": {
+                "type": "string",
+                "operation": "contains"
+              }
+            }
+          ],
+          "combinator": "and"
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.if",
+      "typeVersion": 2.2,
+      "position": [
+        672,
+        0
+      ],
+      "id": "dbf7d52c-cd8b-47e5-969d-7dd2521ae374",
+      "name": "The Filter  Data(The \"Big Fish\" Check)"
+    },
+    {
+      "parameters": {
+        "authentication": "appToken",
+        "email": "={{ $json.body.email }}",
+        "additionalFields": {
+          "companyName": "={{ $json.company_name }}",
+          "firstName": "={{ $json.body.name }}",
+          "numberOfEmployees": "={{ $json.employees }}"
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.hubspot",
+      "typeVersion": 2.2,
+      "position": [
+        896,
+        -96
+      ],
+      "id": "1aae4ee8-7475-4167-936b-9868c62f306a",
+      "name": "Create or update a contact",
+      "credentials": {
+        "hubspotAppToken": {
+          "id": "taYHRNMNFYcfyl8x",
+          "name": "HubSpot Token"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "jsCode": "for (const item of $input.all()) {\n  // Check if email is at the top level OR inside 'body'\n  const email = item.json.email || (item.json.body && item.json.body.email);\n  \n  // Logic to split the domain\n  if (email && email.includes('@')) {\n    item.json.domain = email.split('@')[1];\n  } else {\n    item.json.domain = 'unknown';\n  }\n}\nreturn $input.all();"
+      },
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        224,
+        0
+      ],
+      "id": "69a0e631-a11f-4ace-a261-6f859f5eaf2d",
+      "name": "Check Email To Company Domain"
+    },
+    {
+      "parameters": {
+        "operation": "append",
+        "documentId": {
+          "__rl": true,
+          "value": "1B7yKW0zeOFfJy7ZD7FOZqW1FKhfGhMlc8zyCLvofAKg",
+          "mode": "list",
+          "cachedResultName": "Top Lead Info ",
+          "cachedResultUrl": "https://docs.google.com/spreadsheets/d/1B7yKW0zeOFfJy7ZD7FOZqW1FKhfGhMlc8zyCLvofAKg/edit?usp=drivesdk"
+        },
+        "sheetName": {
+          "__rl": true,
+          "value": "gid=0",
+          "mode": "list",
+          "cachedResultName": "Sheet1",
+          "cachedResultUrl": "https://docs.google.com/spreadsheets/d/1B7yKW0zeOFfJy7ZD7FOZqW1FKhfGhMlc8zyCLvofAKg/edit#gid=0"
+        },
+        "columns": {
+          "mappingMode": "defineBelow",
+          "value": {
+            "Name": "={{ $json.body.name }}",
+            "Email": "={{ $json.body.email }}",
+            "Company": "={{ $json.company_name }}"
+          },
+          "matchingColumns": [],
+          "schema": [
+            {
+              "id": "Name",
+              "displayName": "Name",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "Email",
+              "displayName": "Email",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "Company",
+              "displayName": "Company",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            }
+          ],
+          "attemptToConvertTypes": false,
+          "convertFieldsToString": false
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.googleSheets",
+      "typeVersion": 4.7,
+      "position": [
+        896,
+        96
+      ],
+      "id": "20070fca-e4ec-451b-ab5b-611cb649f9a3",
+      "name": "Lead Info",
+      "credentials": {
+        "googleSheetsOAuth2Api": {
+          "id": "RTUtjJPeCiCw58KF",
+          "name": "iesufian@Google Sheets"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "method": "POST",
+        "url": "https://hooks.slack.com/services/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",
+        "sendBody": true,
+        "bodyParameters": {
+          "parameters": [
+            {
+              "name": "text",
+              "value": "=🚨 *VIP LEAD DETECTED* 🚨 \n---------------------------------- \n\n👤 *Name:*  {{ $('Webhook').item.json.body.name }}\n🏢 *Company:* {{ $json.properties.company.value }}\n👥 *Size:* {{ $json.properties.numemployees.value }} \n\n---------------------------------- \n\n🚀 <https://app.hubspot.com/contacts/YOUR_HUBSPOT_ID/contact/{{ $workflow.id }}|Open in HubSpot>"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.2,
+      "position": [
+        1104,
+        -96
+      ],
+      "id": "10882fe1-4bcf-4913-9fba-57a339696c59",
+      "name": "The \"Rich\" Notification (Slack)"
+    }
+  ],
+  "pinData": {},
+  "connections": {
+    "Webhook": {
+      "main": [
+        [
+          {
+            "node": "Check Email To Company Domain",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Enrichment API The Mock Enrichment Node": {
+      "main": [
+        [
+          {
+            "node": "The Filter  Data(The \"Big Fish\" Check)",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "The Filter  Data(The \"Big Fish\" Check)": {
+      "main": [
+        [
+          {
+            "node": "Create or update a contact",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "Lead Info",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Check Email To Company Domain": {
+      "main": [
+        [
+          {
+            "node": "Enrichment API The Mock Enrichment Node",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Create or update a contact": {
+      "main": [
+        [
+          {
+            "node": "The \"Rich\" Notification (Slack)",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    }
+  },
+  "active": false,
+  "settings": {
+    "executionOrder": "v1"
+  },
+  "versionId": "a9370854-e260-4caa-87d7-1bb172d8b8af",
+  "meta": {
+    "templateCredsSetupCompleted": true,
+    "instanceId": "50918ee0be4fd9ad8edd59da0eb4c4a6502c186d6a425a1cf635ba824838446e"
+  },
+  "id": "06PyzRCQnZSWzbV5",
+  "tags": []
+}
