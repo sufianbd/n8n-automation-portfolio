@@ -17,3 +17,17 @@ A robust data pipeline that accepts raw JSON payloads via Webhook, standardizes 
                                                    |
                                             (True) v
                                              [Google Sheets]
+
+
+## 🧪 How to Test
+1. Import the `workflow.json` into n8n.
+2. Activate the workflow.
+3. Send a POST request to the Webhook URL with this JSON body:
+
+```json
+{
+  "name": "john doe",
+  "email": "john.doe@tech-example.com",
+  "budget": 5000,
+  "source": "Facebook Ads"
+}
