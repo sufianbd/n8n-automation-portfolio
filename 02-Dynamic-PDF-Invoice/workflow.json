@@ -1,0 +1,306 @@
+{
+  "name": "Invoice Generator",
+  "nodes": [
+    {
+      "parameters": {
+        "httpMethod": "POST",
+        "path": "invoice",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.webhook",
+      "typeVersion": 2.1,
+      "position": [
+        0,
+        0
+      ],
+      "id": "53835ec8-6a7c-4e2e-a6e7-dde41f6e2edd",
+      "name": "Webhook",
+      "webhookId": "27a51fda-f624-4152-ade8-6ed46547bd5b"
+    },
+    {
+      "parameters": {
+        "assignments": {
+          "assignments": [
+            {
+              "id": "27452477-9693-43a6-a68d-8d2948d798b3",
+              "name": "hours",
+              "value": "={{ $json.body.hours }}",
+              "type": "number"
+            },
+            {
+              "id": "35da4371-8052-46b6-bb1a-6d2872cb6c95",
+              "name": "rate",
+              "value": "={{ $json.body.rate }}",
+              "type": "number"
+            },
+            {
+              "id": "481e3f2c-0d71-45aa-bad6-8ce58dcc642c",
+              "name": "Client",
+              "value": "={{ $json.body.client }}",
+              "type": "string"
+            },
+            {
+              "id": "75914010-0684-4e6b-916f-fbca18b74498",
+              "name": "service",
+              "value": "Fixing Bugs",
+              "type": "string"
+            },
+            {
+              "id": "ae9577dc-696a-42d8-b242-246a27ee3bb0",
+              "name": "email",
+              "value": "={{ $json.body.email }}",
+              "type": "string"
+            },
+            {
+              "id": "5d41ef69-5ba5-46f7-a734-08e40dc3a4e1",
+              "name": "client",
+              "value": "={{ $json.body.client }}",
+              "type": "string"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.set",
+      "typeVersion": 3.4,
+      "position": [
+        224,
+        0
+      ],
+      "id": "be19b9ab-6f15-41c9-86f2-7fe62dd08630",
+      "name": "Format Data"
+    },
+    {
+      "parameters": {
+        "jsCode": "const results = [];\n\nfor (const item of $input.all()) {\n  const json = item.json;\n  \n  // 1. Get the Client Name safely\n  // We use .toString() to make sure it's text\n  // We use .trim() to remove invisible spaces\n  const rawClient = json.client ? json.client.toString() : \"\";\n  const cleanClient = rawClient.trim();\n\n  // DEBUG: Open your Browser Console (F12) to see this message\n  console.log(\"Processing Client:\", cleanClient);\n\n  const hours = parseFloat(json.hours);\n  const rate = parseFloat(json.rate);\n  const subtotal = hours * rate;\n  let tax = 0;\n\n  // 2. THE BULLETPROOF CHECK\n  // .toLowerCase() makes \"NonProfit\", \"nonprofit\", and \"NONPROFIT\" all work\n  if (cleanClient.toLowerCase() === \"nonprofit\") {\n      tax = 0;\n      console.log(\"--> Match! Tax set to 0\");\n  } else {\n      tax = subtotal * 0.20;\n      console.log(\"--> No match. Applying 20% Tax\");\n  }\n\n  const total = subtotal + tax;\n  const invoice_id = \"INV-\" + Math.floor(Math.random() * 9000);\n  const created_at = new Date().toISOString().split('T')[0];\n\n  results.push({\n    json: {\n      ...json,\n      subtotal,\n      tax,\n      total,\n      invoice_id,\n      created_at,\n      debug_client_read: cleanClient // I added this so you can see it in the output\n    }\n  });\n}\n\nreturn results;"
+      },
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        448,
+        0
+      ],
+      "id": "03d7ee69-12b2-49f3-a882-0a73b606b0cc",
+      "name": "Calculator"
+    },
+    {
+      "parameters": {
+        "assignments": {
+          "assignments": [
+            {
+              "id": "3b2b3115-afa0-4729-a066-f8507cc9ad65",
+              "name": "html_content",
+              "value": "=<div style=\"font-family: Arial; padding: 20px; border: 1px solid #ddd;\">\n  <h1>INVOICE {{ $json.invoice_id }}</h1>\n  <p><strong>Date:</strong> {{ $json.created_at }}</p>\n  <p><strong>Bill To:</strong>{{ $json.email }} </p>\n  <hr>\n  <h3>Service: {{ $json.service }}</h3>\n  <p>{{ $json.hours }} Hours @ ${{ $json.rate }}/hr</p>\n  <p>Subtotal: ${{ $json.subtotal }}</p>\n  <p>Tax (20%): ${{ $json.tax }}</p>\n  <h2 style=\"color: green;\">Total Due: ${{ $json.total }}</h2>\n</div>",
+              "type": "string"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.set",
+      "typeVersion": 3.4,
+      "position": [
+        672,
+        0
+      ],
+      "id": "4f0194ce-5ba5-444c-95c9-cd2e9241743d",
+      "name": "raw data convert ton html_content"
+    },
+    {
+      "parameters": {
+        "jsCode": "// Loop over items\nfor (const item of $input.all()) {\n  \n  // 1. Get the HTML text\n  const htmlText = item.json.html_content;\n\n  // 2. Create the Binary container manually\n  // We encode the text to Base64 (which is what n8n needs for files)\n  item.binary = {\n    data: {\n      data: Buffer.from(htmlText).toString('base64'),\n      mimeType: 'text/html',\n      fileName: 'invoice.html' // <--- THIS is what fixes the API!\n    }\n  };\n}\n\nreturn $input.all();"
+      },
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        896,
+        0
+      ],
+      "id": "7d09ecfb-be41-453c-a249-94a198d06079",
+      "name": "output html wth the file name"
+    },
+    {
+      "parameters": {
+        "method": "POST",
+        "url": "https://v2.convertapi.com/convert/html/to/pdf",
+        "sendQuery": true,
+        "queryParameters": {
+          "parameters": [
+            {
+              "name": "Secret",
+              "value": "QdxY073y3EMpIxLv32ugBr5Z11vcAcFE"
+            }
+          ]
+        },
+        "sendBody": true,
+        "contentType": "multipart-form-data",
+        "bodyParameters": {
+          "parameters": [
+            {
+              "parameterType": "formBinaryData",
+              "name": "File",
+              "inputDataFieldName": "data"
+            },
+            {
+              "name": "StoreFile",
+              "value": "false"
+            }
+          ]
+        },
+        "options": {
+          "response": {
+            "response": {
+              "fullResponse": true,
+              "responseFormat": "file"
+            }
+          }
+        }
+      },
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.2,
+      "position": [
+        1120,
+        0
+      ],
+      "id": "0528fef4-2c7e-46ba-9c1b-85edac52bdff",
+      "name": "convert html to pdf"
+    },
+    {
+      "parameters": {
+        "jsCode": "// 1. Get the input item\nconst item = $input.first();\n\n// 2. Access the binary file named 'data' (where data.json is stored)\n// If your binary property is named something else, change 'data' below.\nconst binaryFile = item.binary.data;\n\nif (!binaryFile) {\n  throw new Error(\"No binary data found! Check the HTTP Request node output.\");\n}\n\n// 3. The file content is text encoded as Base64. We must decode it to a string.\nconst jsonString = Buffer.from(binaryFile.data, 'base64').toString('utf8');\n\n// 4. Parse that string into a real JSON object\nconst apiResponse = JSON.parse(jsonString);\n\n// 5. Extract the PDF Base64 string from ConvertAPI's structure\nconst pdfContent = apiResponse.Files[0].FileData;\n\n// 6. Return the clean PDF file\nreturn [\n  {\n    json: { success: true },\n    binary: {\n      data: {\n        data: pdfContent,\n        mimeType: 'application/pdf',\n        fileName: 'invoice.pdf'\n      }\n    }\n  }\n];"
+      },
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        1344,
+        0
+      ],
+      "id": "ae73d7ee-f36c-4075-af46-5b33474dd94b",
+      "name": "code for conversion html to pdf via pdf conversion API"
+    },
+    {
+      "parameters": {
+        "sendTo": "iesufian@gmail.com",
+        "subject": "Invoice Attached",
+        "emailType": "text",
+        "message": "Please find your invoice attached with this Email",
+        "options": {
+          "appendAttribution": false,
+          "attachmentsUi": {
+            "attachmentsBinary": [
+              {
+                "property": "=data"
+              }
+            ]
+          }
+        }
+      },
+      "type": "n8n-nodes-base.gmail",
+      "typeVersion": 2.1,
+      "position": [
+        1568,
+        0
+      ],
+      "id": "ecd8e2db-f5b6-4749-8218-54bc2ec59182",
+      "name": "Send to the Client",
+      "webhookId": "399a1756-b7d2-49ed-b283-1da11c854002",
+      "credentials": {
+        "gmailOAuth2": {
+          "id": "IBQlhQy5AebZ6rvM",
+          "name": "iesufian@Gmail account"
+        }
+      }
+    }
+  ],
+  "pinData": {},
+  "connections": {
+    "Webhook": {
+      "main": [
+        [
+          {
+            "node": "Format Data",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Format Data": {
+      "main": [
+        [
+          {
+            "node": "Calculator",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Calculator": {
+      "main": [
+        [
+          {
+            "node": "raw data convert ton html_content",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "raw data convert ton html_content": {
+      "main": [
+        [
+          {
+            "node": "output html wth the file name",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "output html wth the file name": {
+      "main": [
+        [
+          {
+            "node": "convert html to pdf",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "convert html to pdf": {
+      "main": [
+        [
+          {
+            "node": "code for conversion html to pdf via pdf conversion API",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "code for conversion html to pdf via pdf conversion API": {
+      "main": [
+        [
+          {
+            "node": "Send to the Client",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    }
+  },
+  "active": false,
+  "settings": {
+    "executionOrder": "v1"
+  },
+  "versionId": "17670567-1239-4968-8394-ec8943cbb70a",
+  "meta": {
+    "templateCredsSetupCompleted": true,
+    "instanceId": "50918ee0be4fd9ad8edd59da0eb4c4a6502c186d6a425a1cf635ba824838446e"
+  },
+  "id": "WsvqTOsoNSn3Hiz5",
+  "tags": []
+}
