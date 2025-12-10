@@ -48,7 +48,7 @@ I am available for freelance automation projects and consulting.
 * **Services:** Custom Workflow Development, API Integration, AI Agent Deployment.
 * **Email:** [Reach me at](mailto:iesufian@gmail.com)
 * **WhatsApp:** [Chat on WhatsApp](https://wa.me/+8801887985705)
-* **Phone:** [Call me directly](tel:+8801887985705)
+* **Phone:**  +8801887985705
 * **LinkedIn:** [https://www.linkedin.com/in/abu-sufian-chowdhury-it-aiautomation-specialist/]
 
 *Built with ❤️ and n8n.*
