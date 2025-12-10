@@ -1,0 +1,244 @@
+{
+  "name": "Lead Capture For Client",
+  "nodes": [
+    {
+      "parameters": {
+        "httpMethod": "POST",
+        "path": "lead-catcher",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.webhook",
+      "typeVersion": 2.1,
+      "position": [
+        0,
+        -144
+      ],
+      "id": "d0e638f6-b051-41d1-b2aa-b69f8f875531",
+      "name": "Webhook",
+      "webhookId": "79f004b2-3f3e-45f2-876c-b9378af2e850"
+    },
+    {
+      "parameters": {
+        "assignments": {
+          "assignments": [
+            {
+              "id": "7ee92867-0be2-4e8b-80e8-f92578002126",
+              "name": "Full Name",
+              "value": "={{ $json.body[\"Company Name\"] }}",
+              "type": "string"
+            },
+            {
+              "id": "e74941da-067a-4abe-a1de-9b1197d52efb",
+              "name": "Ingest Date",
+              "value": "={{ $now }}",
+              "type": "string"
+            },
+            {
+              "id": "3621d30e-5621-440a-beb8-8cc269904fad",
+              "name": "Email Address",
+              "value": "={{ $json.body.email }}",
+              "type": "string"
+            },
+            {
+              "id": "16bc2ea6-7a2a-48ba-b57d-a1e49731f2f9",
+              "name": "Generation Source",
+              "value": "={{ $json.body[\"Generation Source\"] }}",
+              "type": "string"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.set",
+      "typeVersion": 3.4,
+      "position": [
+        224,
+        -144
+      ],
+      "id": "b63bf0af-b1f8-4c44-ba8b-128fbd0fc793",
+      "name": "The Mapper",
+      "retryOnFail": false,
+      "waitBetweenTries": 5000
+    },
+    {
+      "parameters": {
+        "conditions": {
+          "options": {
+            "caseSensitive": true,
+            "leftValue": "",
+            "typeValidation": "strict",
+            "version": 2
+          },
+          "conditions": [
+            {
+              "id": "7d12ac74-21c1-4806-ad34-61238094d0da",
+              "leftValue": "={{ $json['Email Address'] }}",
+              "rightValue": "@",
+              "operator": {
+                "type": "string",
+                "operation": "contains"
+              }
+            }
+          ],
+          "combinator": "and"
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.if",
+      "typeVersion": 2.2,
+      "position": [
+        448,
+        -144
+      ],
+      "id": "17222801-90c2-49c1-8aec-b21555a4af52",
+      "name": "The Gatekeeper"
+    },
+    {
+      "parameters": {
+        "operation": "append",
+        "documentId": {
+          "__rl": true,
+          "value": "1WE_4aimancmsKnJbCsyQ_uHChR_bXRXb1ILg1Pw67J8",
+          "mode": "list",
+          "cachedResultName": "Customer Information to Follow Up",
+          "cachedResultUrl": "https://docs.google.com/spreadsheets/d/1WE_4aimancmsKnJbCsyQ_uHChR_bXRXb1ILg1Pw67J8/edit?usp=drivesdk"
+        },
+        "sheetName": {
+          "__rl": true,
+          "value": "gid=0",
+          "mode": "list",
+          "cachedResultName": "Sheet1",
+          "cachedResultUrl": "https://docs.google.com/spreadsheets/d/1WE_4aimancmsKnJbCsyQ_uHChR_bXRXb1ILg1Pw67J8/edit#gid=0"
+        },
+        "columns": {
+          "mappingMode": "defineBelow",
+          "value": {
+            "Full Name": "={{ $json['Full Name'] }}",
+            "Ingest Date": "={{ $json['Ingest Date'] }}",
+            "Email Address": "={{ $json['Email Address'] }}",
+            "Generation Source": "={{ $json['Generation Source'] }}"
+          },
+          "matchingColumns": [],
+          "schema": [
+            {
+              "id": "Full Name",
+              "displayName": "Full Name",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "Ingest Date",
+              "displayName": "Ingest Date",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "Email Address",
+              "displayName": "Email Address",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "Generation Source",
+              "displayName": "Generation Source",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            }
+          ],
+          "attemptToConvertTypes": false,
+          "convertFieldsToString": false
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.googleSheets",
+      "typeVersion": 4.7,
+      "position": [
+        672,
+        -144
+      ],
+      "id": "34cfaa5f-e51f-4b89-a279-b55873c14728",
+      "name": "Lead Database",
+      "credentials": {
+        "googleSheetsOAuth2Api": {
+          "id": "RTUtjJPeCiCw58KF",
+          "name": "iesufian@Google Sheets"
+        }
+      }
+    }
+  ],
+  "pinData": {},
+  "connections": {
+    "Webhook": {
+      "main": [
+        [
+          {
+            "node": "The Mapper",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "The Mapper": {
+      "main": [
+        [
+          {
+            "node": "The Gatekeeper",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "The Gatekeeper": {
+      "main": [
+        [
+          {
+            "node": "Lead Database",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    }
+  },
+  "active": true,
+  "settings": {
+    "executionOrder": "v1",
+    "timezone": "Asia/Dhaka",
+    "saveDataErrorExecution": "all",
+    "saveDataSuccessExecution": "all",
+    "saveManualExecutions": true,
+    "callerPolicy": "workflowsFromSameOwner",
+    "availableInMCP": false,
+    "errorWorkflow": "g9ipnGm05dffckkS",
+    "timeSavedPerExecution": 20,
+    "saveExecutionProgress": true
+  },
+  "versionId": "b39c8f31-31b8-4663-af48-ad91d58955b2",
+  "meta": {
+    "templateCredsSetupCompleted": true,
+    "instanceId": "50918ee0be4fd9ad8edd59da0eb4c4a6502c186d6a425a1cf635ba824838446e"
+  },
+  "id": "4V56q18b1HXmWZTX",
+  "tags": [
+    {
+      "createdAt": "2025-11-28T11:20:58.388Z",
+      "updatedAt": "2025-11-28T11:20:58.388Z",
+      "id": "cHUoAHChRAZoTvrB",
+      "name": "for export"
+    }
+  ]
+}
