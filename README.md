@@ -3,7 +3,7 @@
 **Expert n8n Workflow Automation | API Integrations | AI Agents**
 
 Welcome to my portfolio of production-ready automation systems. This repository demonstrates my ability to build robust, self-healing, and intelligent workflows that solve real business problems.
-Collection of production-ready n8n workflows for API integration, AI agents, and business automation.
+Here is all of the Collection of my production-ready n8n workflows for API integration, AI agents, and business automation.
 ---
 
 ## 📂 Project Index
